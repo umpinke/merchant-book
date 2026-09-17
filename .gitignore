@@ -39,5 +39,5 @@ replay_*.log
 *.hprof
 *.jfr
 
-# release files (uploaded to Modrinth / GitHub Releases, not part of the source)
-modrinth/*.jar
+# Modrinth upload files (jar, icon, screenshots, description) stay local
+modrinth/

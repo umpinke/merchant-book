@@ -4,8 +4,6 @@ A Fabric mod for Minecraft 26.2 that adds a craftable **Merchant Book** (book + 
 Right-click it to see every trade each villager profession and the wandering trader can offer, level by level:
 price ranges, biome-specific trades, possible enchantments and more.
 
-![Librarian trades](modrinth/gallery-1-librarian.png)
-
 ## Requirements
 
 - Minecraft 26.2
