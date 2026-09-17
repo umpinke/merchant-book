@@ -1,0 +1,10 @@
+{
+	"schemaVersion": 1,
+	"id": "villagertrades-gametest",
+	"version": "1.0.0",
+	"name": "Merchant Book Game Tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": ["de.villagertrades.test.MerchantBookClientGameTest"]
+	}
+}

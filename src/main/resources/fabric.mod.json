@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "villagertrades",
+	"version": "${version}",
+	"name": "Merchant Book",
+	"description": "A craftable Merchant Book (book + emerald) that lists every trade each villager profession and the wandering trader can offer, level by level.",
+	"authors": ["leoluvus"],
+	"license": "MIT",
+	"icon": "assets/villagertrades/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["de.villagertrades.VillagerTradesMod"],
+		"client": ["de.villagertrades.client.VillagerTradesClient"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

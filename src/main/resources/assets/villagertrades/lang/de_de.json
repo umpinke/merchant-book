@@ -1,0 +1,18 @@
+{
+  "item.villagertrades.merchant_book": "Händlerbuch",
+  "villagertrades.missing_client_mod": "Das Händlerbuch braucht die Mod auch auf deinem Client.",
+  "villagertrades.screen.picks": "%s von %s",
+  "villagertrades.wandering.buying": "Kauft",
+  "villagertrades.wandering.common": "Häufige Angebote",
+  "villagertrades.wandering.uncommon": "Seltene Angebote",
+  "villagertrades.trade.random_enchantment": "Zufällige Verzauberung",
+  "villagertrades.trade.possible_enchantments": "Mögliche Verzauberungen (Preis in Smaragden):",
+  "villagertrades.trade.enchanted_levels": "Verzaubert (Stufe %s)",
+  "villagertrades.trade.random_dyes": "Zufällig gefärbt",
+  "villagertrades.trade.random_effect": "Zufälliger Effekt",
+  "villagertrades.trade.possible_effects": "Mögliche Effekte:",
+  "villagertrades.trade.only_variants": "Nur: %s",
+  "villagertrades.trade.conditional": "Nur unter bestimmten Bedingungen",
+  "villagertrades.trade.max_uses": "Max. %s Mal bis zum Nachfüllen",
+  "villagertrades.trade.xp": "%s Erfahrung für den Dorfbewohner"
+}

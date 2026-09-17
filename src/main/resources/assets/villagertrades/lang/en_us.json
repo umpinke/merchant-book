@@ -1,0 +1,18 @@
+{
+  "item.villagertrades.merchant_book": "Merchant Book",
+  "villagertrades.missing_client_mod": "The merchant book needs the mod on your client, too.",
+  "villagertrades.screen.picks": "%s of %s",
+  "villagertrades.wandering.buying": "Buys",
+  "villagertrades.wandering.common": "Common offers",
+  "villagertrades.wandering.uncommon": "Rare offers",
+  "villagertrades.trade.random_enchantment": "Random enchantment",
+  "villagertrades.trade.possible_enchantments": "Possible enchantments (price in emeralds):",
+  "villagertrades.trade.enchanted_levels": "Enchanted (level %s)",
+  "villagertrades.trade.random_dyes": "Randomly dyed",
+  "villagertrades.trade.random_effect": "Random effect",
+  "villagertrades.trade.possible_effects": "Possible effects:",
+  "villagertrades.trade.only_variants": "Only: %s",
+  "villagertrades.trade.conditional": "Only under certain conditions",
+  "villagertrades.trade.max_uses": "Up to %s times before restocking",
+  "villagertrades.trade.xp": "%s experience for the villager"
+}
