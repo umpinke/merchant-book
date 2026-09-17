@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 import java.util.Optional;
 
-/** Every profession with all trades it can roll per level, sent from the server when the merchant book is used. */
 public record CataloguePayload(List<Profession> professions) implements CustomPacketPayload {
 	public static final Type<CataloguePayload> TYPE = new Type<>(VillagerTradesMod.id("catalogue"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, CataloguePayload> CODEC = StreamCodec.ofMember(CataloguePayload::write, CataloguePayload::read);
@@ -19,7 +18,7 @@ public record CataloguePayload(List<Profession> professions) implements CustomPa
 	public record Profession(Component name, ItemStack icon, List<Level> levels) {
 	}
 
-	/** {@code picks} is how many of the listed trades a villager actually gets on this level. */
+	// picks = how many of these trades a villager gets
 	public record Level(Component title, String picks, List<Trade> trades) {
 	}
 

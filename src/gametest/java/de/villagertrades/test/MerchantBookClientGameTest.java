@@ -10,10 +10,7 @@ import net.minecraft.world.item.Items;
 
 import java.util.List;
 
-/**
- * Opens the merchant book in a real client, checks the catalogue and screenshots a few professions.
- * Run with {@code ./gradlew runClientGameTest}; screenshots land in build/run/clientGameTest/screenshots.
- */
+// ./gradlew runClientGameTest, screenshots end up in build/run/clientGameTest/screenshots
 public class MerchantBookClientGameTest implements FabricClientGameTest {
 	@Override
 	public void runTest(ClientGameTestContext context) {
@@ -56,7 +53,7 @@ public class MerchantBookClientGameTest implements FabricClientGameTest {
 				context.takeScreenshot("merchant-book-" + name.toLowerCase().replace(" ", "-"));
 			}
 
-			// Hover the enchanted book row of the librarian to show the enchantment list.
+			// hover the enchanted book trade
 			int librarianIndex = professions.indexOf(librarian);
 			int bookRow = librarian.levels().getFirst().trades().indexOf(book);
 			context.runOnClient(mc -> ((MerchantBookScreen) mc.gui.screen()).select(librarianIndex));

@@ -35,7 +35,7 @@ public class MerchantBookScreen extends Screen {
 	private static final int EMERALD = 0xFF1E8A3C;
 	private static final int RESTRICTION = 0xFF9A6A1E;
 
-	/** Remembered while the game runs, so the book reopens on the profession you looked at last. */
+	// reopen on the last profession
 	private static String lastSelected;
 
 	private final List<CataloguePayload.Profession> professions;
@@ -51,7 +51,7 @@ public class MerchantBookScreen extends Screen {
 	public MerchantBookScreen(CataloguePayload payload) {
 		super(Component.translatable("item.villagertrades.merchant_book"));
 		List<CataloguePayload.Profession> sorted = new ArrayList<>(payload.professions());
-		// Villager professions alphabetically, the wandering trader (sent last) stays at the end.
+		// wandering trader is sent last, keep it at the bottom
 		CataloguePayload.Profession wandering = sorted.isEmpty() ? null : sorted.removeLast();
 		sorted.sort((a, b) -> a.name().getString().compareToIgnoreCase(b.name().getString()));
 		if (wandering != null) {
@@ -79,8 +79,6 @@ public class MerchantBookScreen extends Screen {
 		professionScroll = Math.clamp(professionScroll, 0, maxProfessionScroll());
 		tradeScroll = Math.clamp(tradeScroll, 0, maxTradeScroll());
 	}
-
-	// ---------------------------------------------------------------- layout
 
 	private int listTop() {
 		return top + 26;
@@ -121,8 +119,6 @@ public class MerchantBookScreen extends Screen {
 		return Math.max(0, contentHeight() - (listBottom() - listTop()));
 	}
 
-	// ---------------------------------------------------------------- rendering
-
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
 		super.extractRenderState(g, mouseX, mouseY, partialTick);
@@ -137,7 +133,7 @@ public class MerchantBookScreen extends Screen {
 		List<Component> tooltip = null;
 		ItemStack hoveredStack = ItemStack.EMPTY;
 
-		// Left page: professions
+		// left page
 		g.text(font, title.copy().withStyle(ChatFormatting.BOLD), leftX(), top + 11, INK, false);
 		g.fill(leftX(), listTop() - 3, leftX() + LEFT_PAGE_WIDTH, listTop() - 2, RULE);
 		g.enableScissor(leftX() - 4, listTop(), leftX() + LEFT_PAGE_WIDTH + 2, listBottom());
@@ -166,7 +162,7 @@ public class MerchantBookScreen extends Screen {
 			return;
 		}
 
-		// Right page: trades of the selected profession, level by level
+		// right page
 		CataloguePayload.Profession profession = professions.get(selected);
 		int x = rightX();
 		int width = rightWidth();
@@ -209,7 +205,6 @@ public class MerchantBookScreen extends Screen {
 		}
 	}
 
-	/** Returns the stack under the mouse, if any. */
 	private ItemStack drawTrade(GuiGraphicsExtractor g, CataloguePayload.Trade trade, int x, int y, int width, int mouseX, int mouseY, boolean rowHovered) {
 		ItemStack hovered = ItemStack.EMPTY;
 		int itemY = y + 4;
@@ -273,8 +268,6 @@ public class MerchantBookScreen extends Screen {
 		return mouseY >= listTop() && mouseY < listBottom();
 	}
 
-	// ---------------------------------------------------------------- input
-
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
 		double mouseX = event.x();
@@ -314,7 +307,7 @@ public class MerchantBookScreen extends Screen {
 
 	@Override
 	public boolean keyPressed(KeyEvent event) {
-		// Close with the inventory key (E by default), like container screens do.
+		// E closes it like an inventory
 		if (minecraft != null && minecraft.options.keyInventory.matches(event)) {
 			onClose();
 			return true;

@@ -38,10 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-/**
- * Reads the data driven trade sets (data/minecraft/trade_set + villager_trade) and turns them into something
- * the book can show. Trades are serialized with their own codec so the loot functions can be read as plain JSON.
- */
+// Trades are data driven since 26.1, easiest way to read the loot functions is to encode them back to json.
 public final class TradeCatalogue {
 	private static final int MAX_EMERALDS = 64;
 
@@ -109,7 +106,7 @@ public final class TradeCatalogue {
 			}
 			String picks = TradeSet.CODEC.encodeStart(ops, set.value()).result()
 					.map(json -> {
-						// A villager can never get more trades than the set contains (e.g. the master librarian).
+						// master librarian has amount 3 but only 2 trades
 						double[] amount = range(json.getAsJsonObject().get("amount"));
 						return format(new double[]{Math.min(amount[0], trades.size()), Math.min(amount[1], trades.size())});
 					})
@@ -160,7 +157,7 @@ public final class TradeCatalogue {
 					for (Holder<Enchantment> enchantment : sortedByName(options)) {
 						Enchantment value = enchantment.value();
 						int factor = doublePrice.contains(enchantment) ? 2 : 1;
-						// Same formula as EnchantRandomlyFunction: 2 + random(5 + level * 10) + 3 * level
+						// EnchantRandomlyFunction: 2 + random(5 + level * 10) + 3 * level
 						double cheapest = clampCost(wantsCount[0] + (2 + 3 * value.getMinLevel()) * factor);
 						double priciest = clampCost(wantsCount[1] + (6 + 13 * value.getMaxLevel()) * factor);
 						min = Math.min(min, cheapest);
@@ -255,8 +252,6 @@ public final class TradeCatalogue {
 				Optional.ofNullable(label), Optional.ofNullable(restriction), details);
 	}
 
-	// ---------------------------------------------------------------- helpers
-
 	private static Item item(JsonObject cost) {
 		return BuiltInRegistries.ITEM.getValue(Identifier.parse(cost.get("id").getAsString()));
 	}
@@ -265,7 +260,7 @@ public final class TradeCatalogue {
 		return Mth.clamp(cost, 1, MAX_EMERALDS);
 	}
 
-	/** Resolves "#tag", "id" or ["id", ...] into registry entries. */
+	// "#tag", "id" or ["id", ...]
 	@SuppressWarnings("unchecked")
 	private <T> List<Holder<T>> holders(ResourceKey<? extends net.minecraft.core.Registry<T>> registry, JsonElement json) {
 		HolderLookup.RegistryLookup<T> lookup = registries.lookupOrThrow(registry);
@@ -289,7 +284,7 @@ public final class TradeCatalogue {
 		return enchantments.stream().sorted(Comparator.comparing(h -> h.value().description().getString())).toList();
 	}
 
-	/** Puts several entries on one tooltip line, so long lists (all enchantments) still fit on the screen. */
+	// otherwise the enchantment tooltip is taller than the screen
 	private static List<Component> pack(List<Component> entries) {
 		List<Component> lines = new ArrayList<>();
 		net.minecraft.network.chat.MutableComponent line = null;
@@ -357,7 +352,6 @@ public final class TradeCatalogue {
 		return joined;
 	}
 
-	/** Min and max of a loot table number provider; unknown providers fall back to 1. */
 	static double[] range(JsonElement json) {
 		if (json == null || json.isJsonNull()) {
 			return new double[]{1, 1};

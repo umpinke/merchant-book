@@ -30,7 +30,7 @@ public class VillagerTradesMod implements ModInitializer {
 		ResourceKey<CreativeModeTab> toolsTab = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Identifier.withDefaultNamespace("tools_and_utilities"));
 		CreativeModeTabEvents.modifyOutputEvent(toolsTab).register(output -> output.insertAfter(Items.WRITABLE_BOOK, MERCHANT_BOOK));
 
-		// The full catalogue (all professions, all levels) is bigger than the default payload limit.
+		// too big for the default payload size
 		PayloadTypeRegistry.clientboundPlay().registerLarge(CataloguePayload.TYPE, CataloguePayload.CODEC, 8 * 1024 * 1024);
 
 		LOGGER.info("Merchant book loaded");
