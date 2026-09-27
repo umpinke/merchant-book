@@ -69,6 +69,16 @@ public class MerchantBookClientGameTest implements FabricClientGameTest {
 			context.waitTicks(3);
 			context.takeScreenshot("merchant-book-librarian-tooltip");
 
+			// clicking the row moves the long enchantment list onto the page
+			context.getInput().pressMouse(0);
+			context.waitTicks(3);
+			context.takeScreenshot("merchant-book-enchantment-list");
+			check(context.computeOnClient(mc -> mc.gui.screen() instanceof MerchantBookScreen),
+					"the detail page should stay inside the book");
+
+			context.getInput().pressMouse(0);
+			context.waitTicks(3);
+
 			context.getInput().pressKey(options -> options.keyInventory);
 			context.waitTicks(2);
 			check(context.computeOnClient(mc -> mc.gui.screen() == null), "the inventory key should close the merchant book");

@@ -24,6 +24,8 @@ public class MerchantBookScreen extends Screen {
 	private static final int LEVEL_HEADER = 16;
 	private static final int TRADE_ROW = 24;
 	private static final int LEVEL_GAP = 4;
+	private static final int TOOLTIP_LINES = 6;
+	private static final int DETAIL_ROW = 10;
 
 	private static final int COVER = 0xFF2E6B3A;
 	private static final int COVER_EDGE = 0xFF1D4526;
@@ -42,6 +44,9 @@ public class MerchantBookScreen extends Screen {
 	private int selected;
 	private double professionScroll;
 	private double tradeScroll;
+	/** Trade whose details fill the right page, set by clicking a row. */
+	private CataloguePayload.Trade opened;
+	private double detailScroll;
 
 	private int left;
 	private int top;
@@ -166,6 +171,12 @@ public class MerchantBookScreen extends Screen {
 		CataloguePayload.Profession profession = professions.get(selected);
 		int x = rightX();
 		int width = rightWidth();
+
+		if (opened != null) {
+			drawDetails(g, x, width);
+			return;
+		}
+
 		g.text(font, profession.name().copy().withStyle(ChatFormatting.BOLD), x, top + 11, INK, false);
 		g.fill(x, listTop() - 3, x + width, listTop() - 2, RULE);
 
@@ -184,7 +195,7 @@ public class MerchantBookScreen extends Screen {
 					boolean rowHovered = isInList(mouseY) && mouseX >= x - 4 && mouseX < x + width + 4 && mouseY >= y && mouseY < y + TRADE_ROW;
 					if (rowHovered) {
 						g.fill(x - 4, y, x + width + 4, y + TRADE_ROW - 1, PAGE_SHADE);
-						tooltip = trade.details();
+						tooltip = preview(trade);
 					}
 					ItemStack stack = drawTrade(g, trade, x, y, width, mouseX, mouseY, rowHovered);
 					if (!stack.isEmpty()) {
@@ -238,6 +249,70 @@ public class MerchantBookScreen extends Screen {
 		return hovered;
 	}
 
+	/**
+	 * The hover tooltip only shows the first few lines. A librarian's book trade lists every
+	 * tradeable enchantment, which filled the whole screen - that list goes on the page instead.
+	 */
+	private List<Component> preview(CataloguePayload.Trade trade) {
+		List<Component> details = trade.details();
+		if (details.size() <= TOOLTIP_LINES) {
+			return details;
+		}
+		List<Component> lines = new ArrayList<>(details.subList(0, TOOLTIP_LINES));
+		lines.add(Component.translatable("villagertrades.screen.more", details.size() - TOOLTIP_LINES)
+				.withStyle(ChatFormatting.DARK_GRAY));
+		lines.add(Component.translatable("villagertrades.screen.click_for_details").withStyle(ChatFormatting.YELLOW));
+		return lines;
+	}
+
+	private void drawDetails(GuiGraphicsExtractor g, int x, int width) {
+		Component label = opened.label().orElse(opened.gives().getHoverName());
+		g.item(opened.gives(), x, top + 8);
+		g.text(font, ellipsize(label.getString(), width - 22), x + 20, top + 12, INK, false);
+		g.fill(x, listTop() - 3, x + width, listTop() - 2, RULE);
+
+		g.enableScissor(x - 4, listTop(), x + width + 4, listBottom());
+		int y = listTop() - (int) detailScroll;
+		for (Component line : detailLines(width)) {
+			if (y + DETAIL_ROW > listTop() && y < listBottom()) {
+				g.text(font, line, x, y, INK, false);
+			}
+			y += DETAIL_ROW;
+		}
+		g.disableScissor();
+		scrollbar(g, x + width + 3, detailScroll, maxDetailScroll(width), detailHeight(width));
+
+		Component back = Component.translatable("villagertrades.screen.back");
+		g.text(font, back, x + width - font.width(back), top + 12, INK_SOFT, false);
+	}
+
+	/** Detail lines wrapped to the page width. */
+	private List<Component> detailLines(int width) {
+		List<Component> lines = new ArrayList<>();
+		for (Component line : opened.details()) {
+			String text = line.getString();
+			while (font.width(text) > width) {
+				String head = font.plainSubstrByWidth(text, width);
+				int lastSpace = head.lastIndexOf(' ');
+				if (lastSpace > 8) {
+					head = head.substring(0, lastSpace);
+				}
+				lines.add(Component.literal(head).withStyle(line.getStyle()));
+				text = text.substring(head.length()).stripLeading();
+			}
+			lines.add(Component.literal(text).withStyle(line.getStyle()));
+		}
+		return lines;
+	}
+
+	private int detailHeight(int width) {
+		return detailLines(width).size() * DETAIL_ROW;
+	}
+
+	private int maxDetailScroll(int width) {
+		return Math.max(0, detailHeight(width) - (listBottom() - listTop()));
+	}
+
 	private ItemStack stack(GuiGraphicsExtractor g, ItemStack stack, int x, int y, int mouseX, int mouseY, boolean rowHovered, ItemStack hovered) {
 		g.item(stack, x, y);
 		if (rowHovered && mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
@@ -272,6 +347,18 @@ public class MerchantBookScreen extends Screen {
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
 		double mouseX = event.x();
 		double mouseY = event.y();
+		if (opened != null) {
+			opened = null;
+			detailScroll = 0;
+			return true;
+		}
+		CataloguePayload.Trade clicked = tradeAt(mouseX, mouseY);
+		if (clicked != null && clicked.details().size() > TOOLTIP_LINES) {
+			opened = clicked;
+			detailScroll = 0;
+			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+			return true;
+		}
 		if (isInList(mouseY) && mouseX >= leftX() - 4 && mouseX < leftX() + LEFT_PAGE_WIDTH) {
 			int index = (int) ((mouseY - listTop() + professionScroll) / PROFESSION_ROW);
 			if (index >= 0 && index < professions.size()) {
@@ -282,12 +369,34 @@ public class MerchantBookScreen extends Screen {
 		return super.mouseClicked(event, doubleClick);
 	}
 
+	/** Which trade row sits under the cursor, mirroring the layout the right page draws. */
+	private CataloguePayload.Trade tradeAt(double mouseX, double mouseY) {
+		if (professions.isEmpty() || !isInList(mouseY)
+				|| mouseX < rightX() - 4 || mouseX > rightX() + rightWidth() + 4) {
+			return null;
+		}
+		int y = listTop() - (int) tradeScroll;
+		for (CataloguePayload.Level level : professions.get(selected).levels()) {
+			y += LEVEL_HEADER;
+			for (CataloguePayload.Trade trade : level.trades()) {
+				if (mouseY >= y && mouseY < y + TRADE_ROW) {
+					return trade;
+				}
+				y += TRADE_ROW;
+			}
+			y += LEVEL_GAP;
+		}
+		return null;
+	}
+
 	public void select(int index) {
 		if (index != selected) {
 			Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
 		}
 		selected = index;
 		tradeScroll = 0;
+		opened = null;
+		detailScroll = 0;
 		lastSelected = professions.get(index).name().getString();
 	}
 
@@ -297,12 +406,25 @@ public class MerchantBookScreen extends Screen {
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-		if (mouseX < rightX() - 8) {
+		if (opened != null) {
+			detailScroll = Math.clamp(detailScroll - scrollY * DETAIL_ROW * 3, 0, maxDetailScroll(rightWidth()));
+		} else if (mouseX < rightX() - 8) {
 			professionScroll = Math.clamp(professionScroll - scrollY * PROFESSION_ROW, 0, maxProfessionScroll());
 		} else {
 			tradeScroll = Math.clamp(tradeScroll - scrollY * TRADE_ROW, 0, maxTradeScroll());
 		}
 		return true;
+	}
+
+	@Override
+	public void onClose() {
+		// Esc goes back to the trade list first, then out of the book.
+		if (opened != null) {
+			opened = null;
+			detailScroll = 0;
+			return;
+		}
+		super.onClose();
 	}
 
 	@Override
