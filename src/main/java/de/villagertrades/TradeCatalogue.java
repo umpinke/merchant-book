@@ -97,7 +97,7 @@ public final class TradeCatalogue {
 	private Optional<CataloguePayload.Level> level(Component title, ResourceKey<TradeSet> key) {
 		return registries.lookupOrThrow(Registries.TRADE_SET).get(key).map(set -> {
 			List<CataloguePayload.Trade> trades = new ArrayList<>();
-			for (Holder<VillagerTrade> trade : set.value().getTrades()) {
+			for (Holder<VillagerTrade> trade : set.value().trades()) {
 				try {
 					trades.add(trade(trade.value()));
 				} catch (RuntimeException e) {
@@ -138,11 +138,11 @@ public final class TradeCatalogue {
 		List<Holder<Enchantment>> doublePrice = json.has("double_trade_price_enchantments")
 				? holders(Registries.ENCHANTMENT, json.get("double_trade_price_enchantments")) : List.of();
 
-		JsonArray modifiers = json.has("given_item_modifiers") ? json.getAsJsonArray("given_item_modifiers") : new JsonArray();
+		JsonArray modifiers = modifiers(json);
 		for (JsonElement element : modifiers) {
 			JsonObject modifier = element.getAsJsonObject();
 			boolean addsCost = modifier.has("include_additional_cost_component") && modifier.get("include_additional_cost_component").getAsBoolean();
-			switch (modifier.get("function").getAsString()) {
+			switch (modifier.get("type").getAsString()) {
 				case "minecraft:enchant_randomly" -> {
 					List<Holder<Enchantment>> options = modifier.has("options")
 							? holders(Registries.ENCHANTMENT, modifier.get("options"))
@@ -366,9 +366,9 @@ public final class TradeCatalogue {
 			case "minecraft:constant" -> range(object.get("value"));
 			case "minecraft:uniform" -> new double[]{range(object.get("min"))[0], range(object.get("max"))[1]};
 			case "minecraft:binomial" -> new double[]{0, range(object.get("n"))[1]};
-			case "minecraft:sum" -> {
+			case "minecraft:add" -> {
 				double[] sum = {0, 0};
-				for (JsonElement summand : object.getAsJsonArray("summands")) {
+				for (JsonElement summand : object.getAsJsonArray("inputs")) {
 					double[] part = range(summand);
 					sum[0] += part[0];
 					sum[1] += part[1];
@@ -377,6 +377,21 @@ public final class TradeCatalogue {
 			}
 			default -> new double[]{1, 1};
 		};
+	}
+
+	/** One modifier or a list of them - the data allows both. */
+	private static JsonArray modifiers(JsonObject json) {
+		JsonArray out = new JsonArray();
+		JsonElement element = json.get("given_item_modifier");
+		if (element == null) {
+			return out;
+		}
+		if (element.isJsonArray()) {
+			out.addAll(element.getAsJsonArray());
+		} else {
+			out.add(element);
+		}
+		return out;
 	}
 
 	static String format(double[] range) {
